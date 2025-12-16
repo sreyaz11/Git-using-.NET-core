@@ -1,0 +1,14 @@
+C:\Project\LocalGit\LocalGit\bin\Release\net9.0\LocalGit.exe
+C:\Project\LocalGit\LocalGit\bin\Release\net9.0\LocalGit.deps.json
+C:\Project\LocalGit\LocalGit\bin\Release\net9.0\LocalGit.runtimeconfig.json
+C:\Project\LocalGit\LocalGit\bin\Release\net9.0\LocalGit.dll
+C:\Project\LocalGit\LocalGit\bin\Release\net9.0\LocalGit.pdb
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.AssemblyInfoInputs.cache
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.AssemblyInfo.cs
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.csproj.CoreCompileInputs.cache
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.dll
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\refint\LocalGit.dll
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.pdb
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\LocalGit.genruntimeconfig.cache
+C:\Project\LocalGit\LocalGit\obj\Release\net9.0\ref\LocalGit.dll

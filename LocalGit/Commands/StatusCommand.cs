@@ -1,80 +1,88 @@
-﻿using LocalGit.Core;
+﻿using LocalGit.Commands;
+using LocalGit.Commands.Model;
+using LocalGit.Core;
+using System.Text.Json;
 
+
+//🚀 Natural next steps(choose one)
+//Design deleted file detection
+//Handle staged new files
+//Implement log(very easy now)
+//Design checkout(rebuild working directory)
 public static class StatusCommand
 {
     public static void Execute()
     {
-        EnsureRepo();
-
-        Dictionary<string, string> index = ReadIndex();
-        Dictionary<string, string> lastCommit = ReadLastCommit();
-
-        var files = Directory.GetFiles(Directory.GetCurrentDirectory())
-                             .Select(Path.GetFileName);
-
-        Console.WriteLine("File Status:\n");
-
-        foreach (var file in files)
+        try
         {
-            var content = File.ReadAllBytes(file);
-            var hash = Hasher.Hash(content);
+            EnsureRepo();
 
-            if (!index.ContainsKey(file))
+            Dictionary<string, string> index = ClsCommon.ReadIndex();
+            CommitModel lastCommit = ReadLastCommit();
+
+            var files = Directory.GetFiles(Directory.GetCurrentDirectory())
+                                 .Select(Path.GetFileName);
+
+            Console.WriteLine("File Status:\n");
+
+            if (index.Count == 0 && lastCommit.Snapshot.Count == 0)
             {
-                Console.WriteLine($"Untracked: {file}");
+                foreach(string file in files)
+                    Console.WriteLine($"Untracked : {file}");
             }
-            else if (!lastCommit.ContainsKey(file))
+
+            foreach (var file in files)
             {
-                Console.WriteLine($"Staged: {file}");
+                var content = File.ReadAllBytes(file);
+                var hash = Hasher.Hash(content);
+
+                if (!lastCommit.Snapshot.ContainsKey(file))
+                {
+                    Console.WriteLine($"Untracked : {file}");
+                }
+                else if (lastCommit.Snapshot[file].Equals(hash))                                            //I want to add working directory clean Console when no changes are there in the directory
+                {
+                    Console.WriteLine($"Clean: {file}");
+                }
+                else if (index.ContainsKey(file) && index[file].Equals(hash))
+                {
+                    Console.WriteLine($"Staged: {file}");
+                }
+                else
+                {
+                    Console.WriteLine($"Modified: {file}");
+                }
             }
-            else if (lastCommit[file] != hash)
-            {
-                Console.WriteLine($"Modified: {file}");
-            }
-            else
-            {
-                Console.WriteLine($"Clean: {file}");
-            }
+            Console.WriteLine("\n");
         }
+        catch(Exception ex)
+        {
+            Console.WriteLine("Exception in StatusCommand execute");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.ToString());
+        }
+        
     }
 
-    static Dictionary<string, string> ReadIndex()
+    static CommitModel ReadLastCommit()
     {
-        var dict = new Dictionary<string, string>();
-
-        if (!File.Exists(".LocalGit/index")) return dict;
-
-        foreach (var line in File.ReadAllLines(".LocalGit/index"))
+        try
         {
-            string[] parts = line.Split('|');
-            if (parts.Length == 2)
-                dict[parts[0]] = parts[1];
+            var head = File.ReadAllText(".LocalGit/HEAD");
+
+            string lastCommitJson = File.ReadAllText($".LocalGit/commits/{head}");
+
+            CommitModel lastCommit = JsonSerializer.Deserialize<CommitModel>(lastCommitJson);
+
+            return lastCommit;
         }
-        return dict;
-    }
-
-    static Dictionary<string, string> ReadLastCommit()
-    {
-        var dict = new Dictionary<string, string>();
-        var head = File.ReadAllText(".LocalGit/HEAD");
-
-        if (string.IsNullOrEmpty(head)) return dict;
-
-        var commitFile = $".LocalGit/commits/{head}.json";
-        var json = File.ReadAllText(commitFile);
-
-        var filesSection = json.Split("\"files\":")[1]
-                               .Split('}')[0]
-                               .Trim('"');
-
-        foreach (var line in filesSection.Split("\\n"))
+        catch(Exception ex)
         {
-            var parts = line.Split('|');
-            if (parts.Length == 2)
-                dict[parts[0]] = parts[1];
+            Console.WriteLine("Exception in ReadLastCommit");
+            Console.WriteLine(ex.ToString());
+            Console.WriteLine(ex.Message);
+            return null;
         }
-
-        return dict;
     }
 
     static void EnsureRepo()

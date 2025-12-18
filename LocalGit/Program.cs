@@ -14,7 +14,6 @@ class Program
             Console.WriteLine("LocalGit is not initialized, please initialize first");
             return;
         }
-        //bool result = callCommandExecute(args[0], args[1]);
         string command = args[0];
 
         bool result = false;
@@ -29,6 +28,13 @@ class Program
             case "add":
                 string fileName = args[1];
                 AddCommand.Execute(fileName);
+                break;
+            case "commit":
+                bool IsValid = CommitCommand.ValidateCommand(args);
+                if (IsValid)
+                {
+                    CommitCommand.execute(args[2]);
+                }
                 break;
             default:
                 Console.WriteLine("command not recognized");

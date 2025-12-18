@@ -36,6 +36,9 @@ class Program
                     CommitCommand.execute(args[2]);
                 }
                 break;
+            case "log":
+                IsValid = LogCommand.CallRespectiveLogCommand(args);
+                break;
             default:
                 Console.WriteLine("command not recognized");
                 break;

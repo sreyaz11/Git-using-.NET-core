@@ -1,5 +1,5 @@
 ﻿using LocalGit.Commands.Model;
-using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace LocalGit.Commands
@@ -10,6 +10,7 @@ namespace LocalGit.Commands
         {
             try
             {
+                int indexCount = 0;
                 string CommitId = CreateCommitId();
 
 
@@ -24,6 +25,19 @@ namespace LocalGit.Commands
                     Console.WriteLine("Nothing to commit.");
                     return false;
                 }
+                indexCount = index.Count;
+                if (!string.IsNullOrWhiteSpace(head))
+                {
+                    Dictionary<string, string> HeadCommitObjects = GetHeadCommitObjects(head);
+
+                    //Console.WriteLine("Adding head commit");
+                    foreach (string key in HeadCommitObjects.Keys)
+                    {
+                        if(!index.ContainsKey(key))
+                            index.Add(key, HeadCommitObjects[key]);
+                    }
+                }
+                
                 CommitModel commit = new CommitModel();
                 commit.CommitId = CommitId;
                 commit.Timestamp = DateTime.Now;
@@ -40,7 +54,7 @@ namespace LocalGit.Commands
 
                 if (IsIndexCleared)
                 {
-                    Console.WriteLine($"{index.Count} files changed");
+                    Console.WriteLine($"{indexCount} files changed");
                     return true;
                 }
                 return false;
@@ -86,6 +100,24 @@ namespace LocalGit.Commands
                 }
             }
             return true;
+        }
+
+        public static Dictionary<string, string> GetHeadCommitObjects(string head)
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            try
+            {
+                string HeadCommitJson = File.ReadAllText($".LocalGit/commits/{head}");
+                CommitModel model = JsonSerializer.Deserialize<CommitModel>(HeadCommitJson);
+                return model.Snapshot;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception in GetHeadCommitObjects");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine(ex.Message);
+                return dict;
+            }
         }
     }
 }

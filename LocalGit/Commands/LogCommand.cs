@@ -15,6 +15,14 @@ namespace LocalGit.Commands
             {
                 return Execute(Convert.ToInt32(args[2]));
             }
+            else if (args[1].Equals("--oneline"))
+            {
+                return ExecuteOneLine();
+            }
+            else
+            {
+                Console.WriteLine($"fatal: unrecognized argument {args[1]}");
+            }
             return false;
         }
 
@@ -81,6 +89,43 @@ namespace LocalGit.Commands
                         $"commit : {currentCommit}\n" +
                         $"Date   : {commitObj.Timestamp}\n" +
                         $"Message: {commitObj.Message}"
+                    );
+
+                    visited.Add(currentCommit);
+                    currentCommit = commitObj.ParentCommitId;
+                }
+
+                Console.WriteLine("----------------------------------------------------");
+                Console.WriteLine();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception in CommitCommand execute");
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool ExecuteOneLine()
+        {
+            try
+            {
+                List<string> visited = new List<string>();
+                string currentCommit = ClsCommon.ReadHead();
+
+                if (string.IsNullOrWhiteSpace(currentCommit))
+                {
+                    Console.WriteLine("No commits yet");
+                    return true;
+                }
+                Console.WriteLine("----------------------------------------------------");
+                while (!string.IsNullOrWhiteSpace(currentCommit) && !visited.Contains(currentCommit))
+                {
+                    CommitModel commitObj = JsonSerializer.Deserialize<CommitModel>(File.ReadAllText($".LocalGit/commits/{currentCommit}"));
+
+                    Console.WriteLine(
+                        $"commit : {currentCommit} | Message: {commitObj.Message}"
                     );
 
                     visited.Add(currentCommit);

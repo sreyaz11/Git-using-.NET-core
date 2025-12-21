@@ -26,8 +26,8 @@ class Program
                 StatusCommand.Execute();
                 break;
             case "add":
-                string fileName = args[1];
-                AddCommand.Execute(fileName);
+                //string fileName = args[1];
+                AddCommand.Execute(args);
                 break;
             case "commit":
                 bool IsValid = CommitCommand.ValidateCommand(args);
@@ -57,7 +57,7 @@ class Program
                 StatusCommand.Execute();
                 break;
             case "add":
-                AddCommand.Execute(fileName);
+                //AddCommand.Execute(fileName);
                 break;
             default :
                 Console.WriteLine("command not recognized");

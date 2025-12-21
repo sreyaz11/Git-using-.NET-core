@@ -11,6 +11,12 @@ using System.Text.Json;
 //Design checkout(rebuild working directory)
 public static class StatusCommand
 {
+    static List<string> Staged = new List<string>();
+
+    static List<string> Modified = new List<string>();
+
+    static List<string> Untracked = new List<string>();
+
     public static void Execute()
     {
         try
@@ -23,12 +29,12 @@ public static class StatusCommand
             var files = Directory.GetFiles(Directory.GetCurrentDirectory())
                                  .Select(Path.GetFileName);
 
-            Console.WriteLine("File Status:\n");
-
             if (index.Count == 0 && lastCommit.Snapshot.Count == 0)
             {
-                foreach(string file in files)
+                foreach (string file in files)
                     Console.WriteLine($"Untracked : {file}");
+                Console.WriteLine("\n");
+                return;
             }
 
             foreach (var file in files)
@@ -36,24 +42,66 @@ public static class StatusCommand
                 var content = File.ReadAllBytes(file);
                 var hash = Hasher.Hash(content);
 
-                if (!lastCommit.Snapshot.ContainsKey(file))
+                if (!lastCommit.Snapshot.ContainsKey(file) && !index.ContainsKey(file))
                 {
-                    Console.WriteLine($"Untracked : {file}");
+                    Untracked.Add(file);
                 }
-                else if (lastCommit.Snapshot[file].Equals(hash))                                            //I want to add working directory clean Console when no changes are there in the directory
-                {
-                    Console.WriteLine($"Clean: {file}");
-                }
+                //else if (lastCommit.Snapshot.ContainsKey(file) && lastCommit.Snapshot[file].Equals(hash))                                            //I want to add working directory clean Console when no changes are there in the directory
+                //{
+                //    // Console.WriteLine($"Clean: {file}");
+                //}
                 else if (index.ContainsKey(file) && index[file].Equals(hash))
                 {
-                    Console.WriteLine($"Staged: {file}");
+                    Staged.Add(file);
                 }
-                else
+                else if (lastCommit.Snapshot.ContainsKey(file) && !index.ContainsKey(file) && !lastCommit.Snapshot[file].Equals(hash))
                 {
-                    Console.WriteLine($"Modified: {file}");
+                    Modified.Add(file);
+                }
+                else if (lastCommit.Snapshot.ContainsKey(file) && !index.ContainsKey(file) && !lastCommit.Snapshot[file].Equals(hash))
+                {
+                    Modified.Add(file);
                 }
             }
-            Console.WriteLine("\n");
+
+            if (Staged.Count > 0 || Modified.Count > 0 || Untracked.Count > 0)
+            {
+                Console.WriteLine("File Status:\n");
+
+                if(Staged.Count > 0)
+                {
+                    Console.WriteLine("Staged:");
+                    foreach (string str in Staged)
+                    {
+                        Console.WriteLine($"\t{str}");
+                    }
+                    Console.WriteLine();
+                }
+                
+                if(Modified.Count > 0)
+                {
+                    Console.WriteLine("Modified:");
+                    foreach (string str in Modified)
+                    {
+                        Console.WriteLine($"\t{str}");
+                    }
+                    Console.WriteLine();
+                }
+                
+                if(Untracked.Count > 0)
+                {
+                    Console.WriteLine("Untracked:");
+                    foreach (string str in Untracked)
+                    {
+                        Console.WriteLine($"\t{str}");
+                    }
+                    Console.WriteLine();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Nothing to commit, working directory clean."); 
+            }
         }
         catch(Exception ex)
         {
@@ -68,12 +116,17 @@ public static class StatusCommand
     {
         try
         {
-            var head = File.ReadAllText(".LocalGit/HEAD");
+            CommitModel lastCommit = new CommitModel();
+            lastCommit.Snapshot = new Dictionary<string, string>();
+            string head = File.ReadAllText(".LocalGit/HEAD");
 
-            string lastCommitJson = File.ReadAllText($".LocalGit/commits/{head}");
+            if(!string.IsNullOrWhiteSpace(head)){
+                string lastCommitJson = File.ReadAllText($".LocalGit/commits/{head}");
 
-            CommitModel lastCommit = JsonSerializer.Deserialize<CommitModel>(lastCommitJson);
+                lastCommit = JsonSerializer.Deserialize<CommitModel>(lastCommitJson);
 
+                return lastCommit;
+            }
             return lastCommit;
         }
         catch(Exception ex)
